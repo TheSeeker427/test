@@ -2,8 +2,9 @@ import { createGrid, step, PATTERNS } from '../logic/gameLogic.js';
 
 export default function GameOfLife(container) {
   let canvas, ctx;
-  let gridSize = 30;
-  let cellSize;
+  let gridWidth = 30;
+  let gridHeight = 30;
+  let cellWidth, cellHeight;
   let grid = [];
   let generation = 0;
   let isRunning = false;
@@ -11,7 +12,8 @@ export default function GameOfLife(container) {
   let speed = 10;
   let selectedPattern = 'glider';
 
-  const CANVAS_SIZE = 600;
+  const CANVAS_WIDTH = 600;
+  const CANVAS_HEIGHT = 600;
 
   function countNeighbors(x, y) {
     let count = 0;
@@ -20,7 +22,7 @@ export default function GameOfLife(container) {
         if (dx === 0 && dy === 0) continue;
         const nx = x + dx;
         const ny = y + dy;
-        if (nx >= 0 && nx < gridSize && ny >= 0 && ny < gridSize) {
+        if (nx >= 0 && nx < gridWidth && ny >= 0 && ny < gridHeight) {
           count += grid[ny][nx];
         }
       }
@@ -37,15 +39,15 @@ export default function GameOfLife(container) {
 
   function draw() {
     ctx.fillStyle = '#0a0a0f';
-    ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+    ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-    for (let y = 0; y < gridSize; y++) {
-      for (let x = 0; x < gridSize; x++) {
+    for (let y = 0; y < gridHeight; y++) {
+      for (let x = 0; x < gridWidth; x++) {
         if (grid[y][x]) {
           ctx.fillStyle = '#00ff88';
           ctx.shadowColor = '#00ff88';
           ctx.shadowBlur = 4;
-          ctx.fillRect(x * cellSize + 1, y * cellSize + 1, cellSize - 2, cellSize - 2);
+          ctx.fillRect(x * cellWidth + 1, y * cellHeight + 1, cellWidth - 2, cellHeight - 2);
           ctx.shadowBlur = 0;
         }
       }
@@ -53,14 +55,16 @@ export default function GameOfLife(container) {
 
     ctx.strokeStyle = 'rgba(255,255,255,0.05)';
     ctx.lineWidth = 0.5;
-    for (let i = 0; i <= gridSize; i++) {
+    for (let i = 0; i <= gridWidth; i++) {
       ctx.beginPath();
-      ctx.moveTo(i * cellSize, 0);
-      ctx.lineTo(i * cellSize, CANVAS_SIZE);
+      ctx.moveTo(i * cellWidth, 0);
+      ctx.lineTo(i * cellWidth, CANVAS_HEIGHT);
       ctx.stroke();
+    }
+    for (let i = 0; i <= gridHeight; i++) {
       ctx.beginPath();
-      ctx.moveTo(0, i * cellSize);
-      ctx.lineTo(CANVAS_SIZE, i * cellSize);
+      ctx.moveTo(0, i * cellHeight);
+      ctx.lineTo(CANVAS_WIDTH, i * cellHeight);
       ctx.stroke();
     }
   }
@@ -72,12 +76,14 @@ export default function GameOfLife(container) {
     if (aliveEl) aliveEl.textContent = grid.flat().reduce((a, b) => a + b, 0);
   }
 
-  function initGrid(size) {
-    gridSize = size;
-    cellSize = Math.floor(CANVAS_SIZE / gridSize);
-    canvas.width = CANVAS_SIZE;
-    canvas.height = CANVAS_SIZE;
-    grid = createGrid(gridSize, gridSize);
+  function initGrid(width, height) {
+    gridWidth = width;
+    gridHeight = height;
+    cellWidth = Math.floor(CANVAS_WIDTH / gridWidth);
+    cellHeight = Math.floor(CANVAS_HEIGHT / gridHeight);
+    canvas.width = CANVAS_WIDTH;
+    canvas.height = CANVAS_HEIGHT;
+    grid = createGrid(gridWidth, gridHeight);
     generation = 0;
     renderStats();
     draw();
@@ -85,13 +91,13 @@ export default function GameOfLife(container) {
 
   function loadPattern(patternName) {
     const pattern = PATTERNS[patternName] || PATTERNS.glider;
-    const offsetX = Math.floor(gridSize / 2) - 2;
-    const offsetY = Math.floor(gridSize / 2) - 2;
+    const offsetX = Math.floor(gridWidth / 2) - 2;
+    const offsetY = Math.floor(gridHeight / 2) - 2;
     
     for (const [px, py] of pattern) {
       const x = offsetX + px;
       const y = offsetY + py;
-      if (x >= 0 && x < gridSize && y >= 0 && y < gridSize) {
+      if (x >= 0 && x < gridWidth && y >= 0 && y < gridHeight) {
         grid[y][x] = 1;
       }
     }
@@ -123,8 +129,8 @@ export default function GameOfLife(container) {
 
   function randomize() {
     pause();
-    grid = Array(gridSize).fill(null).map(() =>
-      Array(gridSize).fill(null).map(() => Math.random() > 0.7 ? 1 : 0)
+    grid = Array(gridHeight).fill(null).map(() =>
+      Array(gridWidth).fill(null).map(() => Math.random() > 0.7 ? 1 : 0)
     );
     generation = 0;
     renderStats();
@@ -133,7 +139,7 @@ export default function GameOfLife(container) {
 
   function clearGrid() {
     pause();
-    grid = createGrid(gridSize, gridSize);
+    grid = createGrid(gridWidth, gridHeight);
     generation = 0;
     renderStats();
     draw();
@@ -141,7 +147,7 @@ export default function GameOfLife(container) {
 
   function resetGrid() {
     pause();
-    initGrid(30);
+    initGrid(30, 30);
   }
 
   function updateButtonStates() {
@@ -188,14 +194,14 @@ export default function GameOfLife(container) {
         const valEl = document.getElementById('gol-size-value');
         if (valEl) valEl.textContent = newSize;
         pause();
-        initGrid(newSize);
+        initGrid(newSize, newSize);
       });
     }
 
     if (loadPatternBtn) {
       loadPatternBtn.addEventListener('click', () => {
         pause();
-        initGrid(gridSize);
+        initGrid(gridWidth, gridHeight);
         loadPattern(selectedPattern);
       });
     }
@@ -209,9 +215,9 @@ export default function GameOfLife(container) {
     if (canvas) {
       canvas.addEventListener('click', (e) => {
         const rect = canvas.getBoundingClientRect();
-        const x = Math.floor((e.clientX - rect.left) / cellSize);
-        const y = Math.floor((e.clientY - rect.top) / cellSize);
-        if (x >= 0 && x < gridSize && y >= 0 && y < gridSize) {
+        const x = Math.floor((e.clientX - rect.left) / cellWidth);
+        const y = Math.floor((e.clientY - rect.top) / cellHeight);
+        if (x >= 0 && x < gridWidth && y >= 0 && y < gridHeight) {
           grid[y][x] = grid[y][x] ? 0 : 1;
           renderStats();
           draw();
@@ -290,7 +296,7 @@ export default function GameOfLife(container) {
         </div>
 
         <div class="gol-canvas-wrapper">
-          <canvas id="gol-canvas" width="${CANVAS_SIZE}" height="${CANVAS_SIZE}"></canvas>
+          <canvas id="gol-canvas" width="${CANVAS_WIDTH}" height="${CANVAS_HEIGHT}"></canvas>
         </div>
       </div>
     `;
@@ -309,7 +315,7 @@ export default function GameOfLife(container) {
     }
 
     bindEvents();
-    initGrid(30);
+    initGrid(30, 30);
   }
 
   render();
