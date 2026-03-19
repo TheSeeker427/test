@@ -1,0 +1,14 @@
+{
+  "name": "conways-game-of-life",
+  "version": "1.0.0",
+  "description": "Conway's Game of Life implementation in Node.js",
+  "main": "src/cli.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/cli.js",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
+  },
+  "keywords": ["game", "life", "conway", "cellular", "automata"],
+  "author": "",
+  "license": "MIT"
+}
