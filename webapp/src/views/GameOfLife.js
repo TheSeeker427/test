@@ -206,16 +206,50 @@ export default function GameOfLife(container) {
       });
     }
 
+    let isPainting = false;
+    let paintValue = 1;
+
+    function paintCell(e) {
+      const rect = canvas.getBoundingClientRect();
+      const x = Math.floor((e.clientX - rect.left) / cellSize);
+      const y = Math.floor((e.clientY - rect.top) / cellSize);
+      if (x >= 0 && x < gridSize && y >= 0 && y < gridSize) {
+        if (grid[y][x] !== paintValue) {
+          grid[y][x] = paintValue;
+          renderStats();
+          draw();
+        }
+      }
+    }
+
     if (canvas) {
-      canvas.addEventListener('click', (e) => {
+      canvas.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        pause();
         const rect = canvas.getBoundingClientRect();
         const x = Math.floor((e.clientX - rect.left) / cellSize);
         const y = Math.floor((e.clientY - rect.top) / cellSize);
         if (x >= 0 && x < gridSize && y >= 0 && y < gridSize) {
-          grid[y][x] = grid[y][x] ? 0 : 1;
+          paintValue = grid[y][x] ? 0 : 1;
+          isPainting = true;
+          grid[y][x] = paintValue;
           renderStats();
           draw();
         }
+      });
+
+      canvas.addEventListener('mousemove', (e) => {
+        if (isPainting) {
+          paintCell(e);
+        }
+      });
+
+      canvas.addEventListener('mouseup', () => {
+        isPainting = false;
+      });
+
+      canvas.addEventListener('mouseleave', () => {
+        isPainting = false;
       });
     }
   }
